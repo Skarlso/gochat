@@ -23,12 +23,14 @@ new Vue({
                     + msg.username
                     + '</div>'
                     + '<font color="red">' + emojione.toImage(msg.message) + '</font><br/>';
+                //self.chatContent.style.textAlign = "left";
             } else {
                 self.chatContent += '<div class = "chip" id = "their-chip">'
                     + '<img src="' + self.gravatarURL(msg.email) + '">'
                     + msg.username
                     + '</div>'
                     + emojione.toImage(msg.message) + '<br/>';
+                //self.chatContent.style.textAlign = "right";    
             }
             var element = document.getElementById('chat-messages');
             element.scrollTop = element.scrollHeight; // Auto scroll to the bottom
