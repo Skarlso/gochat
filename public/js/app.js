@@ -1,6 +1,7 @@
 new Vue({
     el: '#app',
 
+    props: ['username'],
     data: {
         ws: null, // Our websocket
         newMsg: '', // Holds new messages to be sent to the server
@@ -15,11 +16,20 @@ new Vue({
         this.ws = new WebSocket('ws://' + window.location.host + '/ws');
         this.ws.addEventListener('message', function(e) {
             var msg = JSON.parse(e.data);
-            self.chatContent += '<div class ="chip">'
-                             + '<img src="' + self.gravatarURL(msg.email) + '">'
-                             + msg.username
-                             + '</div>'
-                             + emojione.toImage(msg.message) + '<br/>';
+            console.log(self.username);
+            if (msg.username === self.username) {
+                self.chatContent += '<div class = "chip" id = "my-chip">'
+                    + '<img src="' + self.gravatarURL(msg.email) + '">'
+                    + msg.username
+                    + '</div>'
+                    + '<font color="red">' + emojione.toImage(msg.message) + '</font><br/>';
+            } else {
+                self.chatContent += '<div class = "chip" id = "their-chip">'
+                    + '<img src="' + self.gravatarURL(msg.email) + '">'
+                    + msg.username
+                    + '</div>'
+                    + emojione.toImage(msg.message) + '<br/>';
+            }
             var element = document.getElementById('chat-messages');
             element.scrollTop = element.scrollHeight; // Auto scroll to the bottom
         });
@@ -39,7 +49,6 @@ new Vue({
                 this.newMsg = ''; // Reset newMsg
             }
         },
-
         join: function () {
             if (!this.email) {
                 Materialize.toast('You must enter an email', 2000);
