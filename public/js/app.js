@@ -15,25 +15,31 @@ new Vue({
         var self = this;
         this.ws = new WebSocket('ws://' + window.location.host + '/ws');
         this.ws.addEventListener('message', function(e) {
-            var msg = JSON.parse(e.data);
-            console.log(self.username);
-            if (msg.username === self.username) {
-                self.chatContent += '<div class = "chip" id = "my-chip">'
-                    + '<img src="' + self.gravatarURL(msg.email) + '">'
-                    + msg.username
-                    + '</div>'
-                    + '<font color="red">' + emojione.toImage(msg.message) + '</font><br/>';
-                //self.chatContent.style.textAlign = "left";
-            } else {
-                self.chatContent += '<div class = "chip" id = "their-chip">'
-                    + '<img src="' + self.gravatarURL(msg.email) + '">'
-                    + msg.username
-                    + '</div>'
-                    + emojione.toImage(msg.message) + '<br/>';
-                //self.chatContent.style.textAlign = "right";    
+            console.log(e.data);
+            var msgFull = JSON.parse(e.data);
+            var msgType = msgFull.type;
+            var msgBody = JSON.parse(atob(msgFull.Msg));
+            switch (msgType) {
+                case 'chat':
+                    var element = document.getElementById('chat-messages');
+                    console.log(self.username);
+                    self.chatContent += '<div class = "chip" id = "my-chip">'
+                        + '<img src="' + self.gravatarURL(msgBody.email) + '">'
+                        + msgBody.username
+                        + '</div>';
+                    if (msgBody.username === self.username) {
+                        self.chatContent += '<font color="red">' + emojione.toImage(msgBody.message) + '</font><br/>';
+                    } else {
+                        self.chatContent += emojione.toImage(msgBody.message) + '<br/>';
+                    }
+                    element.scrollTop = element.scrollHeight; // Auto scroll to the bottom
+                    break;
+                case 'count':
+                    console.log("Count: " + count);
+                    break;
+                default:
+                    console.log("didn't recognize type: " + msgType);
             }
-            var element = document.getElementById('chat-messages');
-            element.scrollTop = element.scrollHeight; // Auto scroll to the bottom
         });
 
     },
