@@ -15,14 +15,12 @@ new Vue({
         var self = this;
         this.ws = new WebSocket('ws://' + window.location.host + '/ws');
         this.ws.addEventListener('message', function(e) {
-            console.log(e.data);
             var msgFull = JSON.parse(e.data);
             var msgType = msgFull.type;
             var msgBody = JSON.parse(atob(msgFull.Msg));
             switch (msgType) {
                 case 'chat':
                     var element = document.getElementById('chat-messages');
-                    console.log(self.username);
                     self.chatContent += '<div class = "chip" id = "my-chip">'
                         + '<img src="' + self.gravatarURL(msgBody.email) + '">'
                         + msgBody.username
@@ -35,7 +33,9 @@ new Vue({
                     element.scrollTop = element.scrollHeight; // Auto scroll to the bottom
                     break;
                 case 'count':
-                    console.log("Count: " + count);
+                    var element = document.getElementById('user-count');
+                    var count = msgBody.count;
+                    element.innerHTML = "Online #" + count;
                     break;
                 default:
                     console.log("didn't recognize type: " + msgType);

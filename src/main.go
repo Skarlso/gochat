@@ -11,6 +11,7 @@ import (
 
 var clients = make(map[*websocket.Conn]bool)
 var broadcast = make(chan Message)
+var sendConnCount = make(chan bool)
 var upgrader = websocket.Upgrader{}
 
 // Message object
@@ -38,7 +39,7 @@ func main() {
 	http.HandleFunc("/ws", handleConnections)
 	// Start listening for messages
 	go handleMessages()
-	// go sendNumberOfConnections()
+	go sendNumberOfConnections()
 
 	log.Println("starting to listen on port :8000")
 	if err := http.ListenAndServe("0.0.0.0:8000", nil); err != nil {
@@ -53,6 +54,7 @@ func handleConnections(w http.ResponseWriter, r *http.Request) {
 	}
 	defer ws.Close()
 	clients[ws] = true
+	sendConnCount <- true
 
 	for {
 		var chat Chat
@@ -60,6 +62,7 @@ func handleConnections(w http.ResponseWriter, r *http.Request) {
 		if err = ws.ReadJSON(&chat); err != nil {
 			log.Println("error: ", err)
 			delete(clients, ws)
+			sendConnCount <- true
 			break
 		}
 		msg.Type = "chat"
@@ -72,12 +75,13 @@ func handleConnections(w http.ResponseWriter, r *http.Request) {
 }
 
 func sendNumberOfConnections() {
-	conCount := ConnCount{}
-	msg := Message{}
-	msg.Type = "count"
-	conCount.Count = len(clients)
-	msg.Msg, _ = json.Marshal(conCount)
 	for {
+		<-sendConnCount
+		conCount := ConnCount{}
+		msg := Message{}
+		msg.Type = "count"
+		conCount.Count = len(clients)
+		msg.Msg, _ = json.Marshal(conCount)
 		for client := range clients {
 			if err := client.WriteJSON(msg); err != nil {
 				// we won't close clients here
@@ -90,12 +94,12 @@ func sendNumberOfConnections() {
 func handleMessages() {
 	for {
 		msg := <-broadcast
-		log.Println("Message: ", msg.Msg)
 		for client := range clients {
 			if err := client.WriteJSON(msg); err != nil {
 				log.Println("error writing message: ", err)
 				client.Close()
 				delete(clients, client)
+				sendConnCount <- true
 			}
 		}
 	}
