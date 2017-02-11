@@ -42,7 +42,7 @@ func main() {
 	go sendNumberOfConnections()
 
 	log.Println("starting to listen on port :8000")
-	if err := http.ListenAndServe("0.0.0.0:8000", nil); err != nil {
+	if err := http.ListenAndServeTLS("0.0.0.0:8000", "cert.pem", "privkey.pem", nil); err != nil {
 		log.Fatal("Error starting server: ", err)
 	}
 }
